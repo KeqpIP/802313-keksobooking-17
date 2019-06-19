@@ -10,8 +10,8 @@ var OFFER_TYPES = [
 ];
 
 var MapScope = {
-  X: { MIN: 0, MAX: 1200 },
-  Y: { MIN: 130, MAX: 630 },
+  X: {MIN: 0, MAX: 1200},
+  Y: {MIN: 130, MAX: 630},
 };
 
 var Pin = {
