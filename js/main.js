@@ -24,11 +24,11 @@ var MainPin = {
   HEIGHT: 84,
 };
 
-var MIN_PRICES = {
-  'bungalo': '0',
-  'flat': '1000',
-  'house': '5000',
-  'palace': '10000'
+var OfferMinPrice = {
+  BUNGALO: 0,
+  FLAT: 1000,
+  HOUSE: 5000,
+  PALACE: 10000,
 };
 
 var mapPins = document.querySelector('.map__pins');
@@ -113,9 +113,10 @@ var enableElement = function (element) {
   element.disabled = false;
 };
 
-var onTypeClickSelectChange = function (evt) {
-  priceInput.placeholder = MIN_PRICES[evt.target.value];
-  priceInput.min = MIN_PRICES[evt.target.value];
+var onPriceChange = function (evt) {
+  var offer = evt.target.value.toUpperCase();
+  priceInput.placeholder = OfferMinPrice[offer];
+  priceInput.min = OfferMinPrice[offer];
 };
 
 var onTimeClickSelectChange = function (evt) {
@@ -126,45 +127,36 @@ var onTimeClickSelectChange = function (evt) {
   }
 };
 
-var changeTimeSelect = function () {
-  timeInSelect.addEventListener('change', onTimeClickSelectChange);
-  timeOutSelect.addEventListener('change', onTimeClickSelectChange);
-};
-
-var changeTypeRoomSelect = function () {
-  typeSelect.addEventListener('change', onTypeClickSelectChange);
-};
-
 var activatePage = function () {
   mapElement.classList.remove('map--faded');
   adForm.classList.remove('ad-form--disabled');
   filterSelectors.forEach(enableElement);
   adFields.forEach(enableElement);
   addPins(mapPins, getPins(OFFERS_NUM));
-  changeTimeSelect();
-  changeTypeRoomSelect();
+  timeInSelect.addEventListener('change', onTimeClickSelectChange);
+  timeOutSelect.addEventListener('change', onTimeClickSelectChange);
+  typeSelect.addEventListener('change', onPriceChange);
 };
 
 var deactivatePage = function () {
   filterSelectors.forEach(disableElement);
   adFields.forEach(disableElement);
 };
-deactivatePage();
 
-var getCoordsPin = function () {
+
+var getMainPinCoords = function () {
   return {
     x: mainPinButton.offsetLeft + MainPin.WIDTH / 2,
     y: mainPinButton.offsetTop + MainPin.HEIGHT,
   };
 };
 
-var renderAddress = function (cords) {
-  addressInput.value = cords.x + ' , ' + cords.y;
+var renderAddress = function (coords) {
+  addressInput.value = coords.x + ' , ' + coords.y;
 };
 
 var onMainPinMouseUp = function () {
-  renderAddress(getCoordsPin());
-  mainPinButton.removeEventListener('mouseup', onMainPinMouseUp);
+  renderAddress(getMainPinCoords());
 };
 
 var onMainPinClick = function () {
@@ -175,3 +167,4 @@ var onMainPinClick = function () {
 
 mainPinButton.addEventListener('click', onMainPinClick);
 mainPinButton.addEventListener('mouseup', onMainPinMouseUp);
+deactivatePage();
