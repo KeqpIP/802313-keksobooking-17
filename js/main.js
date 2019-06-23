@@ -114,9 +114,9 @@ var enableElement = function (element) {
 };
 
 var onPriceChange = function (evt) {
-  var offer = evt.target.value.toUpperCase();
-  priceInput.placeholder = OfferMinPrice[offer];
-  priceInput.min = OfferMinPrice[offer];
+  var price = OfferMinPrice[evt.target.value.toUpperCase()];
+  priceInput.min = price;
+  priceInput.placeholder = price;
 };
 
 var onTimeClickSelectChange = function (evt) {
