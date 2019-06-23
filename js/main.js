@@ -24,6 +24,13 @@ var MainPin = {
   HEIGHT: 84,
 };
 
+var MIN_PRICES = {
+  'bungalo': '0',
+  'flat': '1000',
+  'house': '5000',
+  'palace': '10000'
+};
+
 var mapPins = document.querySelector('.map__pins');
 var mapPin = document.querySelector('#pin')
   .content
@@ -35,6 +42,10 @@ var mainPinButton = document.querySelector('.map__pin--main');
 var mapElement = document.querySelector('.map');
 var adForm = document.querySelector('.ad-form');
 var addressInput = adForm.querySelector('#address');
+var priceInput = adForm.querySelector('#price');
+var typeSelect = adForm.querySelector('#type');
+var timeInSelect = adForm.querySelector('#timein');
+var timeOutSelect = adForm.querySelector('#timeout');
 
 var getRandomItem = function (array) {
   return array[Math.floor(Math.random() * array.length)];
@@ -102,38 +113,65 @@ var enableElement = function (element) {
   element.disabled = false;
 };
 
-// тут добавляю disabled состояние для фильтра объявлений
+var onTypeClickSelectChange = function (evt) {
+  priceInput.placeholder = MIN_PRICES[evt.target.value];
+  priceInput.min = MIN_PRICES[evt.target.value];
+};
 
-filterSelectors.forEach(disableElement);
+var onTimeClickSelectChange = function (evt) {
+  if (evt.target.name === 'timein') {
+    timeOutSelect.value = evt.target.value;
+  } else {
+    timeInSelect.value = evt.target.value;
+  }
+};
 
-// тут добавляю disabled состояние для создания нового объявления
+var changeTimeSelect = function () {
+  timeInSelect.addEventListener('change', onTimeClickSelectChange);
+  timeOutSelect.addEventListener('change', onTimeClickSelectChange);
+};
 
-adFields.forEach(disableElement);
+var changeTypeRoomSelect = function () {
+  typeSelect.addEventListener('change', onTypeClickSelectChange);
+};
+
+var activatePage = function () {
+  mapElement.classList.remove('map--faded');
+  adForm.classList.remove('ad-form--disabled');
+  filterSelectors.forEach(enableElement);
+  adFields.forEach(enableElement);
+  addPins(mapPins, getPins(OFFERS_NUM));
+  changeTimeSelect();
+  changeTypeRoomSelect();
+};
+
+var deactivatePage = function () {
+  filterSelectors.forEach(disableElement);
+  adFields.forEach(disableElement);
+};
+deactivatePage();
+
+var getCoordsPin = function () {
+  return {
+    x: mainPinButton.offsetLeft + MainPin.WIDTH / 2,
+    y: mainPinButton.offsetTop + MainPin.HEIGHT,
+  };
+};
+
+var renderAddress = function (cords) {
+  addressInput.value = cords.x + ' , ' + cords.y;
+};
 
 var onMainPinMouseUp = function () {
-  var x = mainPinButton.offsetLeft + MainPin.WIDTH / 2;
-  var y = mainPinButton.offsetTop + MainPin.HEIGHT;
-  var cords = x + ' , ' + y;
-  addressInput.value = cords;
-
+  renderAddress(getCoordsPin());
   mainPinButton.removeEventListener('mouseup', onMainPinMouseUp);
 };
 
 var onMainPinClick = function () {
-
-  mapElement.classList.remove('map--faded');
-
-  adForm.classList.remove('ad-form--disabled');
-
-  filterSelectors.forEach(enableElement);
-
-  adFields.forEach(enableElement);
-
-  addPins(mapPins, getPins(OFFERS_NUM));
+  activatePage();
 
   mainPinButton.removeEventListener('click', onMainPinClick);
 };
 
 mainPinButton.addEventListener('click', onMainPinClick);
 mainPinButton.addEventListener('mouseup', onMainPinMouseUp);
-
