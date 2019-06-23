@@ -19,13 +19,22 @@ var Pin = {
   HEIGHT: 70,
 };
 
+var MainPin = {
+  WIDTH: 62,
+  HEIGHT: 84,
+};
+
 var mapPins = document.querySelector('.map__pins');
 var mapPin = document.querySelector('#pin')
   .content
   .querySelector('.map__pin');
 
-document.querySelector('.map')
-  .classList.remove('map--faded');
+var filterSelectors = document.querySelectorAll('.map__filter');
+var adFields = document.querySelectorAll('.ad-form__element');
+var mainPinButton = document.querySelector('.map__pin--main');
+var mapElement = document.querySelector('.map');
+var adForm = document.querySelector('.ad-form');
+var addressInput = adForm.querySelector('#address');
 
 var getRandomItem = function (array) {
   return array[Math.floor(Math.random() * array.length)];
@@ -84,5 +93,47 @@ var addPins = function (target, pins) {
   target.appendChild(fragment);
 };
 
-addPins(mapPins, getPins(OFFERS_NUM));
+
+var disableElement = function (element) {
+  element.disabled = true;
+};
+
+var enableElement = function (element) {
+  element.disabled = false;
+};
+
+// тут добавляю disabled состояние для фильтра объявлений
+
+filterSelectors.forEach(disableElement);
+
+// тут добавляю disabled состояние для создания нового объявления
+
+adFields.forEach(disableElement);
+
+var onMainPinMouseUp = function () {
+  var x = mainPinButton.offsetLeft + MainPin.WIDTH / 2;
+  var y = mainPinButton.offsetTop + MainPin.HEIGHT;
+  var cords = x + ' , ' + y;
+  addressInput.value = cords;
+
+  mainPinButton.removeEventListener('mouseup', onMainPinMouseUp);
+};
+
+var onMainPinClick = function () {
+
+  mapElement.classList.remove('map--faded');
+
+  adForm.classList.remove('ad-form--disabled');
+
+  filterSelectors.forEach(enableElement);
+
+  adFields.forEach(enableElement);
+
+  addPins(mapPins, getPins(OFFERS_NUM));
+
+  mainPinButton.removeEventListener('click', onMainPinClick);
+};
+
+mainPinButton.addEventListener('click', onMainPinClick);
+mainPinButton.addEventListener('mouseup', onMainPinMouseUp);
 
