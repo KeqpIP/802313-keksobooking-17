@@ -19,10 +19,22 @@ var Pin = {
   HEIGHT: 70,
 };
 
+var MainPin = {
+  WIDTH: 62,
+  HEIGHT: 84,
+};
+
 var mapPins = document.querySelector('.map__pins');
 var mapPin = document.querySelector('#pin')
   .content
   .querySelector('.map__pin');
+
+var filterSelectors = document.querySelectorAll('.map__filter');
+var adFields = document.querySelectorAll('.ad-form__element');
+var mainPinButton = document.querySelector('.map__pin--main');
+var mapElement = document.querySelector('.map');
+var adForm = document.querySelector('.ad-form');
+var addressInput = adForm.querySelector('#address');
 
 var getRandomItem = function (array) {
   return array[Math.floor(Math.random() * array.length)];
@@ -82,43 +94,46 @@ var addPins = function (target, pins) {
 };
 
 
+var disableElement = function (element) {
+  element.disabled = true;
+};
 
-//тут добавляю disabled состояние для фильтра объявлений
-var inputMapStatus = document.querySelectorAll('.map__filter');
-  inputMapStatus.forEach(function(element) {
-    element.setAttribute('disabled', 'disabled');
-  });
+var enableElement = function (element) {
+  element.disabled = false;
+};
 
-//тут добавляю disabled состояние для создания нового объявления
-var inputAdFormStatus = document.querySelectorAll('.ad-form__element');
-  inputAdFormStatus.forEach(function(element) {
-    element.setAttribute('disabled', 'disabled');
-  });
+// тут добавляю disabled состояние для фильтра объявлений
 
-var mapOpen = document.querySelector('.map__pin--main');
+filterSelectors.forEach(disableElement);
 
-mapOpen.addEventListener('click', function(evt) {
-  document.querySelector('.map').classList.remove('map--faded');
+// тут добавляю disabled состояние для создания нового объявления
 
-  document.querySelector('.ad-form').classList.remove('ad-form--disabled');
-//не смог придумать как сделать так, чтобы этот скрипт не запускался до момента нажатия
-// + потом снова не загружался каждый раз при нажатии на pin-main
-// думал про проверку через if, но не смог придумать подходящее условие
-  new addPins(mapPins, getPins(OFFERS_NUM));
+adFields.forEach(disableElement);
 
-  inputMapStatus.forEach(function(element) {
-    element.removeAttribute('disabled');
-  });
+var onMainPinMouseUp = function () {
+  var x = mainPinButton.offsetLeft + MainPin.WIDTH / 2;
+  var y = mainPinButton.offsetTop + MainPin.HEIGHT;
+  var cords = x + ' , ' + y;
+  addressInput.value = cords;
 
-  inputAdFormStatus.forEach(function(element) {
-    element.removeAttribute('disabled');
-  });
-});
+  mainPinButton.removeEventListener('mouseup', onMainPinMouseUp);
+};
 
-mapOpen.addEventListener('mouseup', function(evt) {
-    var box = mapOpen.getBoundingClientRect();
-    var topPin = box.top + pageYOffset;
-    var leftPin = (box.left / 2)  + pageXOffset;
-    document.getElementById('address').value = leftPin  + ' , ' + topPin; //не понял почему у меня координаты слевой стороны показывают не 570
-  });
+var onMainPinClick = function () {
+
+  mapElement.classList.remove('map--faded');
+
+  adForm.classList.remove('ad-form--disabled');
+
+  filterSelectors.forEach(enableElement);
+
+  adFields.forEach(enableElement);
+
+  addPins(mapPins, getPins(OFFERS_NUM));
+
+  mainPinButton.removeEventListener('click', onMainPinClick);
+};
+
+mainPinButton.addEventListener('click', onMainPinClick);
+mainPinButton.addEventListener('mouseup', onMainPinMouseUp);
 
