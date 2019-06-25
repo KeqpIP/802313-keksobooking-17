@@ -121,12 +121,11 @@ var onPriceChange = function (evt) {
 
 var onTimeInChange = function (evt) {
   timeOutSelect.value = evt.target.value;
-}
+};
 
 var onTimeOutChange = function (evt) {
   timeInSelect.value = evt.target.value;
-}
-
+};
 
 var activatePage = function () {
   mapElement.classList.remove('map--faded');
