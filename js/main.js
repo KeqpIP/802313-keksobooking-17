@@ -119,13 +119,14 @@ var onPriceChange = function (evt) {
   priceInput.placeholder = price;
 };
 
-var onTimeClickSelectChange = function (evt) {
-  if (evt.target.name === 'timein') {
-    timeOutSelect.value = evt.target.value;
-  } else {
-    timeInSelect.value = evt.target.value;
-  }
-};
+var onTimeInChange = function (evt) {
+  timeOutSelect.value = evt.target.value;
+}
+
+var onTimeOutChange = function (evt) {
+  timeInSelect.value = evt.target.value;
+}
+
 
 var activatePage = function () {
   mapElement.classList.remove('map--faded');
@@ -133,8 +134,8 @@ var activatePage = function () {
   filterSelectors.forEach(enableElement);
   adFields.forEach(enableElement);
   addPins(mapPins, getPins(OFFERS_NUM));
-  timeInSelect.addEventListener('change', onTimeClickSelectChange);
-  timeOutSelect.addEventListener('change', onTimeClickSelectChange);
+  timeInSelect.addEventListener('change', onTimeInChange);
+  timeOutSelect.addEventListener('change', onTimeOutChange);
   typeSelect.addEventListener('change', onPriceChange);
 };
 
