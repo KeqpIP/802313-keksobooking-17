@@ -24,6 +24,13 @@ var MainPin = {
   HEIGHT: 84,
 };
 
+var OfferMinPrice = {
+  BUNGALO: 0,
+  FLAT: 1000,
+  HOUSE: 5000,
+  PALACE: 10000,
+};
+
 var mapPins = document.querySelector('.map__pins');
 var mapPin = document.querySelector('#pin')
   .content
@@ -35,6 +42,10 @@ var mainPinButton = document.querySelector('.map__pin--main');
 var mapElement = document.querySelector('.map');
 var adForm = document.querySelector('.ad-form');
 var addressInput = adForm.querySelector('#address');
+var priceInput = adForm.querySelector('#price');
+var typeSelect = adForm.querySelector('#type');
+var timeInSelect = adForm.querySelector('#timein');
+var timeOutSelect = adForm.querySelector('#timeout');
 
 var getRandomItem = function (array) {
   return array[Math.floor(Math.random() * array.length)];
@@ -102,38 +113,58 @@ var enableElement = function (element) {
   element.disabled = false;
 };
 
-// тут добавляю disabled состояние для фильтра объявлений
+var onPriceChange = function (evt) {
+  var price = OfferMinPrice[evt.target.value.toUpperCase()];
+  priceInput.min = price;
+  priceInput.placeholder = price;
+};
 
-filterSelectors.forEach(disableElement);
+var onTimeInChange = function (evt) {
+  timeOutSelect.value = evt.target.value;
+};
 
-// тут добавляю disabled состояние для создания нового объявления
+var onTimeOutChange = function (evt) {
+  timeInSelect.value = evt.target.value;
+};
 
-adFields.forEach(disableElement);
+var activatePage = function () {
+  mapElement.classList.remove('map--faded');
+  adForm.classList.remove('ad-form--disabled');
+  filterSelectors.forEach(enableElement);
+  adFields.forEach(enableElement);
+  addPins(mapPins, getPins(OFFERS_NUM));
+  timeInSelect.addEventListener('change', onTimeInChange);
+  timeOutSelect.addEventListener('change', onTimeOutChange);
+  typeSelect.addEventListener('change', onPriceChange);
+};
+
+var deactivatePage = function () {
+  filterSelectors.forEach(disableElement);
+  adFields.forEach(disableElement);
+};
+
+
+var getMainPinCoords = function () {
+  return {
+    x: mainPinButton.offsetLeft + MainPin.WIDTH / 2,
+    y: mainPinButton.offsetTop + MainPin.HEIGHT,
+  };
+};
+
+var renderAddress = function (coords) {
+  addressInput.value = coords.x + ' , ' + coords.y;
+};
 
 var onMainPinMouseUp = function () {
-  var x = mainPinButton.offsetLeft + MainPin.WIDTH / 2;
-  var y = mainPinButton.offsetTop + MainPin.HEIGHT;
-  var cords = x + ' , ' + y;
-  addressInput.value = cords;
-
-  mainPinButton.removeEventListener('mouseup', onMainPinMouseUp);
+  renderAddress(getMainPinCoords());
 };
 
 var onMainPinClick = function () {
-
-  mapElement.classList.remove('map--faded');
-
-  adForm.classList.remove('ad-form--disabled');
-
-  filterSelectors.forEach(enableElement);
-
-  adFields.forEach(enableElement);
-
-  addPins(mapPins, getPins(OFFERS_NUM));
+  activatePage();
 
   mainPinButton.removeEventListener('click', onMainPinClick);
 };
 
 mainPinButton.addEventListener('click', onMainPinClick);
 mainPinButton.addEventListener('mouseup', onMainPinMouseUp);
-
+deactivatePage();
