@@ -23,11 +23,6 @@ var Pin = {
   HEIGHT: 70,
 };
 
-var MainPin = {
-  WIDTH: 62,
-  HEIGHT: 84,
-};
-
 var OfferMinPrice = {
   BUNGALO: 0,
   FLAT: 1000,
@@ -181,7 +176,7 @@ var onMainPinMouseDown = function (evtDown) {
       y: Math.min(Math.max(moveEvt.clientY, ACTIVE_MAP_START - window.scrollY - mainPinButton.offsetHeight), ACTIVE_MAP_FINISH - window.scrollY)
     };
 
-    //вот с этим кодом мне помог знакомый
+    // вот с этим кодом мне помог знакомый, он не даёт нам перемещать пин за границы карты
     mainPinButton.style.top = Math.min(Math.max((mainPinButton.offsetTop - shift.y), ACTIVE_MAP_START - mainPinButton.offsetHeight), ACTIVE_MAP_FINISH) + 'px';
     mainPinButton.style.left = Math.min(Math.max((mainPinButton.offsetLeft - shift.x), 0 - (mainPinButton.offsetWidth / 2)), mapElement.offsetWidth - (mainPinButton.offsetWidth / 2)) + 'px';
     addressInput.value = Math.round((mainPinButton.offsetWidth / 2) + parseInt(mainPinButton.style.left, 10)) + ', ' + parseInt(mainPinButton.style.top, 10);
@@ -190,14 +185,13 @@ var onMainPinMouseDown = function (evtDown) {
   var onMainPinMouseUp = function (upEvt) {
     upEvt.preventDefault();
     addPins(mapPins, getPins(OFFERS_NUM));
-    document.removeEventListener('mousemove', onMainPinMouseMove);
-    document.removeEventListener('mouseup', onMainPinMouseUp);
+    mapElement.removeEventListener('mousemove', onMainPinMouseMove);
+    mapElement.removeEventListener('mouseup', onMainPinMouseUp);
 
-    onMapPinMainMouseup();
   };
 
-  document.addEventListener('mousemove', onMainPinMouseMove);
-  document.addEventListener('mouseup', onMainPinMouseUp);
+  mapElement.addEventListener('mousemove', onMainPinMouseMove);
+  mapElement.addEventListener('mouseup', onMainPinMouseUp);
   mainPinButton.removeEventListener('mousedown', onMainPinMouseDown);
 };
 
