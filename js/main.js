@@ -9,6 +9,10 @@ var OFFER_TYPES = [
   'palace',
 ];
 
+// тут создаю переменные для создания границ перемещения пина, чтоб он не мог наехать на фильтр внизу карты
+var ACTIVE_MAP_START = 100;
+var ACTIVE_MAP_FINISH = 620;
+
 var MapScope = {
   X: {MIN: 0, MAX: 1200},
   Y: {MIN: 130, MAX: 630},
@@ -132,7 +136,7 @@ var activatePage = function () {
   adForm.classList.remove('ad-form--disabled');
   filterSelectors.forEach(enableElement);
   adFields.forEach(enableElement);
-  addPins(mapPins, getPins(OFFERS_NUM));
+
   timeInSelect.addEventListener('change', onTimeInChange);
   timeOutSelect.addEventListener('change', onTimeOutChange);
   typeSelect.addEventListener('change', onPriceChange);
@@ -144,27 +148,59 @@ var deactivatePage = function () {
 };
 
 
-var getMainPinCoords = function () {
+/* var getMainPinCoords = function () {
   return {
     x: mainPinButton.offsetLeft + MainPin.WIDTH / 2,
     y: mainPinButton.offsetTop + MainPin.HEIGHT,
   };
 };
 
-var renderAddress = function (coords) {
+ var renderAddress = function (coords) {
   addressInput.value = coords.x + ' , ' + coords.y;
-};
+}; */
 
-var onMainPinMouseUp = function () {
-  renderAddress(getMainPinCoords());
-};
 
-var onMainPinClick = function () {
+var onMainPinMouseDown = function (evtDown) {
   activatePage();
+  evtDown.preventDefault();
 
-  mainPinButton.removeEventListener('click', onMainPinClick);
+  var startCoords = {
+    x: evtDown.clientX,
+    y: evtDown.clientY
+  };
+
+  var onMainPinMouseMove = function (moveEvt) {
+    moveEvt.preventDefault();
+
+    var shift = {
+      x: startCoords.x - moveEvt.clientX,
+      y: startCoords.y - moveEvt.clientY
+    };
+    startCoords = {
+      x: Math.min(Math.max(moveEvt.clientX, mapElement.offsetLeft), mapElement.offsetWidth + mapElement.offsetLeft),
+      y: Math.min(Math.max(moveEvt.clientY, ACTIVE_MAP_START - window.scrollY - mainPinButton.offsetHeight), ACTIVE_MAP_FINISH - window.scrollY)
+    };
+
+    //вот с этим кодом мне помог знакомый
+    mainPinButton.style.top = Math.min(Math.max((mainPinButton.offsetTop - shift.y), ACTIVE_MAP_START - mainPinButton.offsetHeight), ACTIVE_MAP_FINISH) + 'px';
+    mainPinButton.style.left = Math.min(Math.max((mainPinButton.offsetLeft - shift.x), 0 - (mainPinButton.offsetWidth / 2)), mapElement.offsetWidth - (mainPinButton.offsetWidth / 2)) + 'px';
+    addressInput.value = Math.round((mainPinButton.offsetWidth / 2) + parseInt(mainPinButton.style.left, 10)) + ', ' + parseInt(mainPinButton.style.top, 10);
+  };
+
+  var onMainPinMouseUp = function (upEvt) {
+    upEvt.preventDefault();
+    addPins(mapPins, getPins(OFFERS_NUM));
+    document.removeEventListener('mousemove', onMainPinMouseMove);
+    document.removeEventListener('mouseup', onMainPinMouseUp);
+
+    onMapPinMainMouseup();
+  };
+
+  document.addEventListener('mousemove', onMainPinMouseMove);
+  document.addEventListener('mouseup', onMainPinMouseUp);
+  mainPinButton.removeEventListener('mousedown', onMainPinMouseDown);
 };
 
-mainPinButton.addEventListener('click', onMainPinClick);
-mainPinButton.addEventListener('mouseup', onMainPinMouseUp);
+mainPinButton.addEventListener('mousedown', onMainPinMouseDown);
+
 deactivatePage();
