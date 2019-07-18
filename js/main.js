@@ -2,13 +2,6 @@
 
 var OFFERS_NUM = 8;
 
-var OFFER_TYPES = [
-  'bungalo',
-  'flat',
-  'house',
-  'palace',
-];
-
 // тут создаю переменные для создания границ перемещения пина, чтоб он не мог наехать на фильтр внизу карты
 var ACTIVE_MAP_START = 100;
 var ACTIVE_MAP_FINISH = 620;
@@ -23,12 +16,30 @@ var Pin = {
   HEIGHT: 70,
 };
 
-var OfferMinPrice = {
-  BUNGALO: 0,
-  FLAT: 1000,
-  HOUSE: 5000,
-  PALACE: 10000,
+var offerTypeToMinPrice = {
+  bungalo: 0,
+  flat: 1000,
+  house: 5000,
+  palace: 10000,
 };
+
+var MainPinSize = {
+  WIDTH: 62,
+  HEIGHT: 58,
+  HEIGHT_WITH_POINTER: 80,
+  WIDTH_HALF: 31,
+  HEIGHT_HALF: 29,
+};
+
+var MainPinRect = {
+  TOP: 130,
+  RIGHT: 1200 - MainPinSize.WIDTH_HALF,
+  BOTTOM: 630,
+  LEFT: -MainPinSize.WIDTH_HALF,
+};
+
+var offerTypes = Object.keys(offerTypeToMinPrice); // ['bungalo', 'flat', 'house', 'palace']
+
 
 var mapPins = document.querySelector('.map__pins');
 var mapPin = document.querySelector('#pin')
@@ -69,7 +80,7 @@ var makePin = function (id) {
       avatar: 'img/avatars/user' + id + '.png',
     },
     offer: {
-      type: getRandomItem(OFFER_TYPES),
+      type: getRandomItem(offerTypes),
     },
     location: {
       x: getRandomNumber(MapScope.X.MIN, MapScope.X.MAX),
@@ -113,9 +124,9 @@ var enableElement = function (element) {
 };
 
 var onPriceChange = function (evt) {
-  var price = OfferMinPrice[evt.target.value.toUpperCase()];
-  priceInput.min = price;
-  priceInput.placeholder = price;
+  var minPrice = offerTypeToMinPrice[evt.target.value];
+  priceInput.min = minPrice;
+  priceInput.placeholder = minPrice;
 };
 
 var onTimeInChange = function (evt) {
@@ -142,59 +153,91 @@ var deactivatePage = function () {
   adFields.forEach(disableElement);
 };
 
+var renderMainPin = function (x, y) {
+  mainPinButton.style.left = x + 'px';
+  mainPinButton.style.top = y + 'px';
+};
 
-/* var getMainPinCoords = function () {
+var getMainPinCoords = function () {
   return {
-    x: mainPinButton.offsetLeft + MainPin.WIDTH / 2,
-    y: mainPinButton.offsetTop + MainPin.HEIGHT,
+    x: mainPinButton.offsetLeft + MainPinSize.WIDTH / 2,
+    y: mainPinButton.offsetTop + MainPinSize.HEIGHT,
   };
 };
 
- var renderAddress = function (coords) {
-  addressInput.value = coords.x + ' , ' + coords.y;
-}; */
+var onPinStart = function () {
+  return {
+    x: mainPinButton.offsetLeft,
+    y: mainPinButton.offsetTop,
+  };
+};
+
+var onPinMove = function (x, y) {
+  x = Math.min(Math.max(x, MainPinRect.LEFT), MainPinRect.RIGHT);
+  y = Math.min(Math.max(y, MainPinRect.TOP), MainPinRect.BOTTOM);
+
+  renderMainPin(x, y);
+  renderAddress(getMainPinCoords(MainPinSize.HEIGHT_WITH_POINTER));
+};
 
 
-var onMainPinMouseDown = function (evtDown) {
+var onMouseDown = function (evtDown) {
   activatePage();
   evtDown.preventDefault();
-
-  var startCoords = {
-    x: evtDown.clientX,
-    y: evtDown.clientY
-  };
-
-  var onMainPinMouseMove = function (moveEvt) {
-    moveEvt.preventDefault();
-
-    var shift = {
-      x: startCoords.x - moveEvt.clientX,
-      y: startCoords.y - moveEvt.clientY
-    };
-    startCoords = {
-      x: Math.min(Math.max(moveEvt.clientX, mapElement.offsetLeft), mapElement.offsetWidth + mapElement.offsetLeft),
-      y: Math.min(Math.max(moveEvt.clientY, ACTIVE_MAP_START - window.scrollY - mainPinButton.offsetHeight), ACTIVE_MAP_FINISH - window.scrollY)
-    };
-
-    // вот с этим кодом мне помог знакомый, он не даёт нам перемещать пин за границы карты
-    mainPinButton.style.top = Math.min(Math.max((mainPinButton.offsetTop - shift.y), ACTIVE_MAP_START - mainPinButton.offsetHeight), ACTIVE_MAP_FINISH) + 'px';
-    mainPinButton.style.left = Math.min(Math.max((mainPinButton.offsetLeft - shift.x), 0 - (mainPinButton.offsetWidth / 2)), mapElement.offsetWidth - (mainPinButton.offsetWidth / 2)) + 'px';
-    addressInput.value = Math.round((mainPinButton.offsetWidth / 2) + parseInt(mainPinButton.style.left, 10)) + ', ' + parseInt(mainPinButton.style.top, 10);
-  };
-
-  var onMainPinMouseUp = function (upEvt) {
-    upEvt.preventDefault();
-    addPins(mapPins, getPins(OFFERS_NUM));
-    mapElement.removeEventListener('mousemove', onMainPinMouseMove);
-    mapElement.removeEventListener('mouseup', onMainPinMouseUp);
-
-  };
-
-  mapElement.addEventListener('mousemove', onMainPinMouseMove);
-  mapElement.addEventListener('mouseup', onMainPinMouseUp);
-  mainPinButton.removeEventListener('mousedown', onMainPinMouseDown);
 };
 
-mainPinButton.addEventListener('mousedown', onMainPinMouseDown);
+
+var makeDragStart = function (onStart, onMove) {
+
+  return function (evt) {
+    evt.preventDefault();
+
+    var start = onStart(evt);
+    start.x = start.x || 0;
+    start.y = start.y || 0;
+
+    var onMouseMove = function (moveEvt) {
+      moveEvt.preventDefault();
+      onMove(
+        start.x + moveEvt.clientX - evt.clientX,
+        start.y + moveEvt.clientY - evt.clientY,
+      );
+    };
+
+    var onMouseUp = function (upEvt) {
+      upEvt.preventDefault();
+      addPins(mapPins, getPins(OFFERS_NUM));
+      mapElement.removeEventListener('mousemove', onMouseMove);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp, {once: true});
+  };
+};
+
+
+var onPinDragStart = makeDragStart(
+  onPinStart,
+  onPinMove,
+);
+
+mainPinButton.addEventListener('mousedown', onPinDragStart);
+
+var renderAddress = function (coords) {
+  addressInput.value = coords.x + ' , ' + coords.y;
+};
+
+
+
+
+
+
+
+  mapElement.addEventListener('mousemove', onMouseMove);
+  mapElement.addEventListener('mouseup', onMouseUp);
+  mainPinButton.removeEventListener('mousedown', onMouseDown);
+
+/*
+mainPinButton.addEventListener('mousedown', onMouseDown); */
 
 deactivatePage();
