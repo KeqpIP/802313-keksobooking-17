@@ -2,10 +2,6 @@
 
 var OFFERS_NUM = 8;
 
-// тут создаю переменные для создания границ перемещения пина, чтоб он не мог наехать на фильтр внизу карты
-var ACTIVE_MAP_START = 100;
-var ACTIVE_MAP_FINISH = 620;
-
 var MapScope = {
   X: {MIN: 0, MAX: 1200},
   Y: {MIN: 130, MAX: 630},
@@ -24,21 +20,26 @@ var offerTypeToMinPrice = {
 };
 
 var MainPinSize = {
-  WIDTH: 62,
-  HEIGHT: 58,
-  HEIGHT_WITH_POINTER: 80,
-  WIDTH_HALF: 31,
-  HEIGHT_HALF: 29,
+  WIDTH: 65,
+  HEIGHT: 80,
+  RADIUS: 32,
+};
+
+var MapRect = {
+  LEFT: 0,
+  TOP: 130,
+  RIGHT: 1200,
+  BOTTOM: 630,
 };
 
 var MainPinRect = {
-  TOP: 130,
-  RIGHT: 1200 - MainPinSize.WIDTH_HALF,
-  BOTTOM: 630,
-  LEFT: -MainPinSize.WIDTH_HALF,
+  TOP: MapRect.TOP,
+  RIGHT: MapRect.RIGHT - MainPinSize.RADIUS,
+  BOTTOM: MapRect.BOTTOM,
+  LEFT: MapRect.LEFT - MainPinSize.RADIUS,
 };
 
-var offerTypes = Object.keys(offerTypeToMinPrice); // ['bungalo', 'flat', 'house', 'palace']
+var offerTypes = Object.keys(offerTypeToMinPrice);
 
 
 var mapPins = document.querySelector('.map__pins');
@@ -105,16 +106,6 @@ var renderPin = function (pin) {
   return clone;
 };
 
-var addPins = function (target, pins) {
-  var fragment = document.createDocumentFragment();
-  pins.forEach(function (pin) {
-    fragment.appendChild(renderPin(pin));
-  });
-
-  target.appendChild(fragment);
-};
-
-
 var disableElement = function (element) {
   element.disabled = true;
 };
@@ -143,14 +134,31 @@ var activatePage = function () {
   filterSelectors.forEach(enableElement);
   adFields.forEach(enableElement);
 
+
+  var addPins = function (target, pins) {
+    var fragment = document.createDocumentFragment();
+    pins.forEach(function (pin) {
+      fragment.appendChild(renderPin(pin));
+    });
+
+    target.appendChild(fragment);
+  };
+  addPins(mapPins, getPins(OFFERS_NUM));
+
   timeInSelect.addEventListener('change', onTimeInChange);
   timeOutSelect.addEventListener('change', onTimeOutChange);
   typeSelect.addEventListener('change', onPriceChange);
 };
 
+var renderAddress = function (coords) {
+  addressInput.value = coords.x + ' , ' + coords.y;
+};
+
 var deactivatePage = function () {
   filterSelectors.forEach(disableElement);
   adFields.forEach(disableElement);
+  mainPinButton.addEventListener('mousedown', onPinDragOnce, {once: true});
+  renderAddress(getMainPinCoords(MainPinSize.RADIUS));
 };
 
 var renderMainPin = function (x, y) {
@@ -158,10 +166,10 @@ var renderMainPin = function (x, y) {
   mainPinButton.style.top = y + 'px';
 };
 
-var getMainPinCoords = function () {
+var getMainPinCoords = function (height) {
   return {
-    x: mainPinButton.offsetLeft + MainPinSize.WIDTH / 2,
-    y: mainPinButton.offsetTop + MainPinSize.HEIGHT,
+    x: mainPinButton.offsetLeft + MainPinSize.RADIUS,
+    y: mainPinButton.offsetTop + height,
   };
 };
 
@@ -177,15 +185,8 @@ var onPinMove = function (x, y) {
   y = Math.min(Math.max(y, MainPinRect.TOP), MainPinRect.BOTTOM);
 
   renderMainPin(x, y);
-  renderAddress(getMainPinCoords(MainPinSize.HEIGHT_WITH_POINTER));
+  renderAddress(getMainPinCoords());
 };
-
-
-var onMouseDown = function (evtDown) {
-  activatePage();
-  evtDown.preventDefault();
-};
-
 
 var makeDragStart = function (onStart, onMove) {
 
@@ -193,21 +194,17 @@ var makeDragStart = function (onStart, onMove) {
     evt.preventDefault();
 
     var start = onStart(evt);
-    start.x = start.x || 0;
-    start.y = start.y || 0;
 
     var onMouseMove = function (moveEvt) {
       moveEvt.preventDefault();
       onMove(
-        start.x + moveEvt.clientX - evt.clientX,
-        start.y + moveEvt.clientY - evt.clientY,
-      );
+          start.x + moveEvt.clientX - evt.clientX,
+          start.y + moveEvt.clientY - evt.clientY);
     };
 
     var onMouseUp = function (upEvt) {
       upEvt.preventDefault();
-      addPins(mapPins, getPins(OFFERS_NUM));
-      mapElement.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mousemove', onMouseMove);
     };
 
     document.addEventListener('mousemove', onMouseMove);
@@ -215,29 +212,33 @@ var makeDragStart = function (onStart, onMove) {
   };
 };
 
+var makeDragOnce = function (onDrag) {
+  return function (evt) {
+    evt.preventDefault();
 
-var onPinDragStart = makeDragStart(
-  onPinStart,
-  onPinMove,
-);
+    var onMouseDrag = function (dragEvt) {
+      dragEvt.preventDefault();
+      document.removeEventListener('mousemove', onMouseDrag);
+      document.removeEventListener('mouseup', onMouseDrag);
+      onDrag(dragEvt);
+    };
 
-mainPinButton.addEventListener('mousedown', onPinDragStart);
-
-var renderAddress = function (coords) {
-  addressInput.value = coords.x + ' , ' + coords.y;
+    document.addEventListener('mousemove', onMouseDrag);
+    document.addEventListener('mouseup', onMouseDrag);
+  };
 };
 
+var onPinChange = function () {
+  activatePage();
+};
+
+var onPinDragOnce = makeDragOnce(onPinChange);
 
 
+var onPinDragStart = makeDragStart(
+    onPinStart,
+    onPinMove);
 
-
-
-
-  mapElement.addEventListener('mousemove', onMouseMove);
-  mapElement.addEventListener('mouseup', onMouseUp);
-  mainPinButton.removeEventListener('mousedown', onMouseDown);
-
-/*
-mainPinButton.addEventListener('mousedown', onMouseDown); */
+mainPinButton.addEventListener('mousedown', onPinDragStart);
 
 deactivatePage();
