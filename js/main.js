@@ -2,13 +2,6 @@
 
 var OFFERS_NUM = 8;
 
-var OFFER_TYPES = [
-  'bungalo',
-  'flat',
-  'house',
-  'palace',
-];
-
 var MapScope = {
   X: {MIN: 0, MAX: 1200},
   Y: {MIN: 130, MAX: 630},
@@ -19,17 +12,35 @@ var Pin = {
   HEIGHT: 70,
 };
 
-var MainPin = {
-  WIDTH: 62,
-  HEIGHT: 84,
+var offerTypeToMinPrice = {
+  bungalo: 0,
+  flat: 1000,
+  house: 5000,
+  palace: 10000,
 };
 
-var OfferMinPrice = {
-  BUNGALO: 0,
-  FLAT: 1000,
-  HOUSE: 5000,
-  PALACE: 10000,
+var MainPinSize = {
+  WIDTH: 65,
+  HEIGHT: 80,
+  RADIUS: 32,
 };
+
+var MapRect = {
+  LEFT: 0,
+  TOP: 130,
+  RIGHT: 1200,
+  BOTTOM: 630,
+};
+
+var MainPinRect = {
+  TOP: MapRect.TOP,
+  RIGHT: MapRect.RIGHT - MainPinSize.RADIUS,
+  BOTTOM: MapRect.BOTTOM,
+  LEFT: MapRect.LEFT - MainPinSize.RADIUS,
+};
+
+var offerTypes = Object.keys(offerTypeToMinPrice);
+
 
 var mapPins = document.querySelector('.map__pins');
 var mapPin = document.querySelector('#pin')
@@ -70,7 +81,7 @@ var makePin = function (id) {
       avatar: 'img/avatars/user' + id + '.png',
     },
     offer: {
-      type: getRandomItem(OFFER_TYPES),
+      type: getRandomItem(offerTypes),
     },
     location: {
       x: getRandomNumber(MapScope.X.MIN, MapScope.X.MAX),
@@ -95,16 +106,6 @@ var renderPin = function (pin) {
   return clone;
 };
 
-var addPins = function (target, pins) {
-  var fragment = document.createDocumentFragment();
-  pins.forEach(function (pin) {
-    fragment.appendChild(renderPin(pin));
-  });
-
-  target.appendChild(fragment);
-};
-
-
 var disableElement = function (element) {
   element.disabled = true;
 };
@@ -114,9 +115,9 @@ var enableElement = function (element) {
 };
 
 var onPriceChange = function (evt) {
-  var price = OfferMinPrice[evt.target.value.toUpperCase()];
-  priceInput.min = price;
-  priceInput.placeholder = price;
+  var minPrice = offerTypeToMinPrice[evt.target.value];
+  priceInput.min = minPrice;
+  priceInput.placeholder = minPrice;
 };
 
 var onTimeInChange = function (evt) {
@@ -132,39 +133,112 @@ var activatePage = function () {
   adForm.classList.remove('ad-form--disabled');
   filterSelectors.forEach(enableElement);
   adFields.forEach(enableElement);
+
+
+  var addPins = function (target, pins) {
+    var fragment = document.createDocumentFragment();
+    pins.forEach(function (pin) {
+      fragment.appendChild(renderPin(pin));
+    });
+
+    target.appendChild(fragment);
+  };
   addPins(mapPins, getPins(OFFERS_NUM));
+
   timeInSelect.addEventListener('change', onTimeInChange);
   timeOutSelect.addEventListener('change', onTimeOutChange);
   typeSelect.addEventListener('change', onPriceChange);
-};
-
-var deactivatePage = function () {
-  filterSelectors.forEach(disableElement);
-  adFields.forEach(disableElement);
-};
-
-
-var getMainPinCoords = function () {
-  return {
-    x: mainPinButton.offsetLeft + MainPin.WIDTH / 2,
-    y: mainPinButton.offsetTop + MainPin.HEIGHT,
-  };
 };
 
 var renderAddress = function (coords) {
   addressInput.value = coords.x + ' , ' + coords.y;
 };
 
-var onMainPinMouseUp = function () {
-  renderAddress(getMainPinCoords());
+var deactivatePage = function () {
+  filterSelectors.forEach(disableElement);
+  adFields.forEach(disableElement);
+  mainPinButton.addEventListener('mousedown', onPinDragOnce, {once: true});
+  renderAddress(getMainPinCoords(MainPinSize.RADIUS));
 };
 
-var onMainPinClick = function () {
+var renderMainPin = function (x, y) {
+  mainPinButton.style.left = x + 'px';
+  mainPinButton.style.top = y + 'px';
+};
+
+var getMainPinCoords = function (height) {
+  return {
+    x: mainPinButton.offsetLeft + MainPinSize.RADIUS,
+    y: mainPinButton.offsetTop + height,
+  };
+};
+
+var onPinStart = function () {
+  return {
+    x: mainPinButton.offsetLeft,
+    y: mainPinButton.offsetTop,
+  };
+};
+
+var onPinMove = function (x, y) {
+  x = Math.min(Math.max(x, MainPinRect.LEFT), MainPinRect.RIGHT);
+  y = Math.min(Math.max(y, MainPinRect.TOP), MainPinRect.BOTTOM);
+
+  renderMainPin(x, y);
+  renderAddress(getMainPinCoords(MainPinSize.HEIGHT));
+};
+
+var makeDragStart = function (onStart, onMove) {
+
+  return function (evt) {
+    evt.preventDefault();
+
+    var start = onStart(evt);
+
+    var onMouseMove = function (moveEvt) {
+      moveEvt.preventDefault();
+      onMove(
+          start.x + moveEvt.clientX - evt.clientX,
+          start.y + moveEvt.clientY - evt.clientY);
+    };
+
+    var onMouseUp = function (upEvt) {
+      upEvt.preventDefault();
+      document.removeEventListener('mousemove', onMouseMove);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp, {once: true});
+  };
+};
+
+var makeDragOnce = function (onDrag) {
+  return function (evt) {
+    evt.preventDefault();
+
+    var onMouseDrag = function (dragEvt) {
+      dragEvt.preventDefault();
+      document.removeEventListener('mousemove', onMouseDrag);
+      document.removeEventListener('mouseup', onMouseDrag);
+      onDrag(dragEvt);
+    };
+
+    document.addEventListener('mousemove', onMouseDrag);
+    document.addEventListener('mouseup', onMouseDrag);
+  };
+};
+
+var onPinChange = function () {
   activatePage();
-
-  mainPinButton.removeEventListener('click', onMainPinClick);
 };
 
-mainPinButton.addEventListener('click', onMainPinClick);
-mainPinButton.addEventListener('mouseup', onMainPinMouseUp);
+var onPinDragOnce = makeDragOnce(onPinChange);
+
+
+var onPinDragStart = makeDragStart(
+    onPinStart,
+    onPinMove);
+
+mainPinButton.addEventListener('mousedown', onPinDragStart);
+
 deactivatePage();
