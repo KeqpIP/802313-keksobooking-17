@@ -185,7 +185,7 @@ var onPinMove = function (x, y) {
   y = Math.min(Math.max(y, MainPinRect.TOP), MainPinRect.BOTTOM);
 
   renderMainPin(x, y);
-  renderAddress(getMainPinCoords());
+  renderAddress(getMainPinCoords(MainPinSize.HEIGHT));
 };
 
 var makeDragStart = function (onStart, onMove) {
