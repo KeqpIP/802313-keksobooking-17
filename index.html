@@ -15,10 +15,8 @@
       <img src="img/keksobooking.svg" alt="Keksobooking. Кексы по соседству" width="215" height="45">
     </div>
 
-    <!-- Карта объявлений -->
     <section class="map map--faded">
 
-      <!-- Метки объявлений -->
       <div class="map__pins">
         <div class="map__overlay">
           <h2 class="map__title">И снова Токио!</h2>
@@ -35,7 +33,6 @@
         </button>
       </div>
 
-      <!-- Фильтрация объявлений -->
       <div class="map__filters-container">
         <form action="#" class="map__filters" autocomplete="off">
           <select name="housing-type" id="housing-type" class="map__filter">
@@ -81,7 +78,6 @@
       </div>
     </section>
 
-    <!-- Форма объявления -->
     <section class="notice">
       <h2 class="notice__title">Ваше объявление</h2>
       <form class="ad-form ad-form--disabled" method="post" action="https://js.dump.academy/keksobooking" enctype="multipart/form-data" autocomplete="off">
@@ -202,7 +198,6 @@
     </ul>
   </footer>
 
-  <!-- Модальное окно с информацией об объявлении -->
   <template id="card">
     <article class="map__card popup">
       <img src="img/avatars/user01.png" class="popup__avatar" width="70" height="70" alt="Аватар пользователя">
@@ -228,19 +223,16 @@
     </article>
   </template>
 
-  <!-- Метка объявления -->
   <template id="pin">
     <button type="button" class="map__pin" style="left: 200px; top: 400px;"><img src="img/avatars/user07.png" width="40" height="40" draggable="false" alt="Метка объявления"></button>
   </template>
 
-  <!-- Сообщение об успешном создании объявления -->
   <template id="success">
     <div class="success">
       <p class="success__message">Ваше объявление<br>успешно размещено!</p>
     </div>
   </template>
 
-  <!-- Сообщение об ошибке создания объеявления -->
   <template id="error">
     <div class="error">
       <p class="error__message">Ошибка загрузки объявления</p>
