@@ -10,15 +10,11 @@
   var capacityInput = adForm.querySelector('#capacity');
   var cleanFormButton = adForm.querySelector('.ad-form__reset');
 
-  // определяем минимальное значение цены
-
   var onTypeChange = function () {
     var minPrice = offerTypeToMinPrice[placeTypeInput.value];
     priceInput.min = minPrice;
     priceInput.placeholder = minPrice;
   };
-
-  // синхронизация времени заезда и времени выезда
 
   var onTimeInChange = function () {
     timeOutSelect.value = timeInSelect.value;
@@ -31,8 +27,6 @@
   var onCapacityChange = function () {
     validateGuests();
   };
-
-  // зависимость количества гостей от количества комнат
 
   var onRoomChange = function () {
     var roomNumber = +roomNumberInput.value;

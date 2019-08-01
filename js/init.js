@@ -5,8 +5,6 @@
   var fieldsetList = document.querySelectorAll('.ad-form fieldset');
   var filterForm = document.querySelector('.map__filters');
 
-  // опишем неактивное состояние окна
-
   var disactivatePage = function () {
     if (!cityMap.classList.contains('map--faded')) {
       cityMap.classList.add('map--faded');
@@ -18,8 +16,6 @@
     setDisabled(adForm);
     setDisabled(filterForm);
   };
-
-  // опишем функцию активации окна
 
   var activatePage = function () {
     cityMap.classList.remove('map--faded');
