@@ -84,7 +84,7 @@
     <!-- Форма объявления -->
     <section class="notice">
       <h2 class="notice__title">Ваше объявление</h2>
-      <form class="ad-form ad-form--disabled" method="post" enctype="multipart/form-data" action="https://js.dump.academy/keksobooking" autocomplete="off">
+      <form class="ad-form ad-form--disabled" method="post" action="https://js.dump.academy/keksobooking" enctype="multipart/form-data" autocomplete="off">
         <fieldset class="ad-form-header">
           <legend class="ad-form-header__title">Ваша фотография (для карты)</legend>
           <div class="ad-form-header__upload">
@@ -100,11 +100,11 @@
         </fieldset>
         <fieldset class="ad-form__element ad-form__element--wide">
           <label class="ad-form__label" for="title">Заголовок объявления</label>
-          <input id="title" name="title" type="text" placeholder="Милая, уютная квартирка в центре Токио" minlength="30" maxlength="100" required>
+          <input id="title" name="title" type="text" placeholder="Милая, уютная квартирка в центре Токио" required minlength="30" maxlength="100">
         </fieldset>
         <fieldset class="ad-form__element ad-form__element--wide">
           <label class="ad-form__label" for="address">Адрес</label>
-          <input id="address" name="address" type="text">
+          <input id="address" name="address" type="text" readonly>
         </fieldset>
         <fieldset class="ad-form__element">
           <label class="ad-form__label" for="type">Тип жилья</label>
@@ -117,7 +117,7 @@
         </fieldset>
         <fieldset class="ad-form__element">
           <label class="ad-form__label" for="price">Цена за ночь, руб.</label>
-          <input id="price" name="price" type="number" placeholder="5000" max="1000000" required>
+          <input id="price" name="price" type="number" placeholder="5000" required max="1000000">
         </fieldset>
         <fieldset class="ad-form__element ad-form__element--time">
           <label class="ad-form__label" for="timein">Время заезда и выезда</label>
@@ -138,7 +138,7 @@
             <option value="1" selected>1 комната</option>
             <option value="2">2 комнаты</option>
             <option value="3">3 комнаты</option>
-            <option value="100">100 комнат</option>
+            <option value="0">100 комнат</option>
           </select>
         </fieldset>
         <fieldset class="ad-form__element">
@@ -147,7 +147,7 @@
             <option value="3" selected>для 3 гостей</option>
             <option value="2">для 2 гостей</option>
             <option value="1">для 1 гостя</option>
-            <option value="0">не для гостей</option>
+            <option value="100">не для гостей</option>
           </select>
         </fieldset>
         <fieldset class="ad-form__element ad-form__element--wide features">
@@ -247,6 +247,21 @@
       <button class="error__button" href="#">Попробовать снова</button>
     </div>
   </template>
-<script src="js/main.js"></script>
+
+  <script src="js/backend.js"></script>
+  <script src="js/notification.js"></script>
+  <script src="js/constants.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/advert-card.js"></script>
+  <script src="js/advert-pin.js"></script>
+  <script src="js/filters.js"></script>
+  <script src="js/loading.js"></script>
+
+  <script src="js/init.js"></script>
+  <script src="js/main-pin.js"></script>
+  <script src="js/file-upload.js"></script>
+  <script src="js/form.js"></script>
+  <script src="js/main.js"></script>
+
 </body>
 </html>
